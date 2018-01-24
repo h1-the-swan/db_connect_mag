@@ -1,5 +1,5 @@
 import os
-from MySQLConnect import MySQLConnect
+from .MySQLConnect import MySQLConnect
 
 database_settings = {
     'protocol': 'mysql+pymysql',

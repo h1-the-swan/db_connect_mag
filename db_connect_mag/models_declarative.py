@@ -1,7 +1,7 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from db_connect_mag_201710 import get_db_connection
+from .db_connect_mag_201710 import get_db_connection
 db = get_db_connection()
 db.metadata.reflect(extend_existing=True)
 Base = declarative_base(db.engine)
