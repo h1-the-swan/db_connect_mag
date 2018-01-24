@@ -1,1 +1,1 @@
-from models_declarative import Paper
+from .models_declarative import Paper
