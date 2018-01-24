@@ -21,6 +21,6 @@ setup(
     url='https://github.com/h1-the-swan/db_connect_mag.git',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
-    install_requires=[]
+    install_requires=['sqlalchemy']
 )
 
