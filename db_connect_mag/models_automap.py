@@ -1,16 +1,19 @@
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.automap import automap_base, name_for_collection_relationship
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-from .db_connect_mag_201710 import get_db_connection
-db = get_db_connection()
-db.metadata.reflect(extend_existing=True)
-Base = declarative_base(db.engine)
+Base = automap_base()
 
 from sqlalchemy import Column, Integer, BigInteger, Text, SmallInteger, ForeignKey
 
+def _name_for_collection_relationship(base, local_cls, referred_cls, constraint):
+    if constraint.name:
+        # return constraint.name.lower() + "_collection"
+        return constraint.name.lower()
+    # if this didn't work, revert to the default behavior
+    return name_for_collection_relationship(base, local_cls, referred_cls, constraint)
+
 class Paper(Base):
     __tablename__ = 'Papers'
-    __table_args__ = {'autoload': True}
 
     # id = Column('Paper_ID', BigInteger)
     _rank = relationship("Rank", uselist=False)
@@ -80,29 +83,23 @@ class Paper(Base):
 
 class Rank(Base):
     __tablename__ = 'rank'
-    __table_args__ = {'autoload': True}
 
 class Tree(Base):
     __tablename__ = 'tree'
-    __table_args__ = {'autoload': True}
 
     # _cl_meta_tree = relationship("ClustersMetaTree", uselist=False, viewonly=True)
 
 class Journal(Base):
     __tablename__ = 'Journals'
-    __table_args__ = {'autoload': True}
 
 class ConferenceSeries(Base):
     __tablename__ = 'ConferenceSeries'
-    __table_args__ = {'autoload': True}
 
 class PaperAuthorAffiliation(Base):
     __tablename__ = 'PaperAuthorAffiliations'
-    __table_args__ = {'autoload': True}
 
 class ClustersMetaTree(Base):
     __tablename__ = 'clusters_meta_tree'
-    __table_args__ = {'autoload': True}
 
 # class PaperAuthorAffiliation(Base):
 #     __tablename__ = 'PaperAuthorAffiliation'
@@ -114,7 +111,6 @@ class ClustersMetaTree(Base):
 
 class PaperReference(Base):
     __tablename__ = 'PaperReferences'
-    __table_args__ = {'autoload': True}
     # __table_args__ = {'extend_existing': True}
 
     Paper_ID = Column('Paper_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='papers_citing'), primary_key=True)

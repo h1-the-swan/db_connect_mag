@@ -1,23 +1,20 @@
-from sqlalchemy.ext.automap import automap_base, name_for_collection_relationship
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-Base = automap_base()
+from .db_connect_mag_201710 import get_db_connection
+db = get_db_connection()
+db.metadata.reflect(extend_existing=True)
+Base = declarative_base(db.engine)
 
 from sqlalchemy import Column, Integer, BigInteger, Text, SmallInteger, ForeignKey
 
-def _name_for_collection_relationship(base, local_cls, referred_cls, constraint):
-    if constraint.name:
-        # return constraint.name.lower() + "_collection"
-        return constraint.name.lower()
-    # if this didn't work, revert to the default behavior
-    return name_for_collection_relationship(base, local_cls, referred_cls, constraint)
-
 class Paper(Base):
     __tablename__ = 'Papers'
+    __table_args__ = {'autoload': True}
 
     # id = Column('Paper_ID', BigInteger)
     _rank = relationship("Rank", uselist=False)
-    _tree = relationship("Tree", uselist=False)
+    _tree = relationship("Tree", uselist=False, backref='paper')
     _journal = relationship("Journal", uselist=False)
     _conference = relationship("ConferenceSeries", uselist=False)
     _paa = relationship("PaperAuthorAffiliation")
@@ -83,23 +80,37 @@ class Paper(Base):
 
 class Rank(Base):
     __tablename__ = 'rank'
+    __table_args__ = {'autoload': True}
 
 class Tree(Base):
     __tablename__ = 'tree'
+    __table_args__ = {'autoload': True}
 
     # _cl_meta_tree = relationship("ClustersMetaTree", uselist=False, viewonly=True)
+    # _cl_meta_tree = relationship("ClustersMetaTree", uselist=False, backref='tree')
+    _cl_meta_tree = relationship("ClustersMetaTree", backref='tree_collection')
 
 class Journal(Base):
     __tablename__ = 'Journals'
+    __table_args__ = {'autoload': True}
 
 class ConferenceSeries(Base):
     __tablename__ = 'ConferenceSeries'
+    __table_args__ = {'autoload': True}
 
 class PaperAuthorAffiliation(Base):
     __tablename__ = 'PaperAuthorAffiliations'
+    __table_args__ = {'autoload': True}
 
 class ClustersMetaTree(Base):
     __tablename__ = 'clusters_meta_tree'
+    __table_args__ = {'autoload': True}
+
+    @hybrid_property
+    def all_papers(self):
+        if not self.tree_collection:
+            return []
+        return [t.paper for t in self.tree_collection]
 
 # class PaperAuthorAffiliation(Base):
 #     __tablename__ = 'PaperAuthorAffiliation'
@@ -111,6 +122,7 @@ class ClustersMetaTree(Base):
 
 class PaperReference(Base):
     __tablename__ = 'PaperReferences'
+    __table_args__ = {'autoload': True}
     # __table_args__ = {'extend_existing': True}
 
     Paper_ID = Column('Paper_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='papers_citing'), primary_key=True)
