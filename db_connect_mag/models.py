@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from .db_connect_mag_201710 import get_db_connection
 db = get_db_connection()
 db.metadata.reflect(extend_existing=True)
@@ -112,6 +112,14 @@ class ClustersMetaTree(Base):
             return []
         return [t.paper for t in self.tree_collection]
 
+class ClusterToplevelLink(Base):
+    __tablename__ = 'cluster_toplevel_linklist'
+    __table_args__ = {'autoload': True}
+    source_toplevel = Column('source_toplevel', BigInteger, ForeignKey('clusters_meta_tree.toplevel_in_tree', name='source_cl_meta'))
+    target_toplevel = Column('target_toplevel', BigInteger, ForeignKey('clusters_meta_tree.toplevel_in_tree', name='target_cl_meta'))
+    source_cl_meta = relationship('ClustersMetaTree', foreign_keys=[source_toplevel], backref='cls_meta_citing')
+    target_cl_meta = relationship('ClustersMetaTree', foreign_keys=[target_toplevel], backref='cls_meta_cited')
+
 # class PaperAuthorAffiliation(Base):
 #     __tablename__ = 'PaperAuthorAffiliation'
 #     # __mapper_args__ = {
@@ -125,11 +133,11 @@ class PaperReference(Base):
     __table_args__ = {'autoload': True}
     # __table_args__ = {'extend_existing': True}
 
-    Paper_ID = Column('Paper_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='papers_citing'), primary_key=True)
-    Paper_reference_ID = Column('Paper_reference_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='papers_cited'), primary_key=True)
+    Paper_ID = Column('Paper_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='paper_citing'), primary_key=True)
+    Paper_reference_ID = Column('Paper_reference_ID', BigInteger, ForeignKey('Papers.Paper_ID', name='paper_cited'), primary_key=True)
 
-    papers_citing = relationship('Paper', foreign_keys=[Paper_ID], backref='paperrefs_citing')
-    papers_cited = relationship('Paper', foreign_keys=[Paper_reference_ID], backref='paperrefs_cited')
+    paper_citing = relationship('Paper', foreign_keys=[Paper_ID], backref='paperrefs_citing')
+    paper_cited = relationship('Paper', foreign_keys=[Paper_reference_ID], backref='paperrefs_cited')
     #
     # papers_citing = relationship('Paper', primaryjoin="PaperReference.Paper_ID==Paper.Paper_ID", backref='papers_citing', foreign_keys=[Paper_ID])
     # papers_cited = relationship('Paper', primaryjoin="PaperReference.Paper_reference_ID==Paper.Paper_ID", backref='papers_cited', foreign_keys=[Paper_reference_ID])
