@@ -17,7 +17,7 @@ class Paper(Base):
     _tree = relationship("Tree", uselist=False, backref='paper')
     _journal = relationship("Journal", uselist=False)
     _conference = relationship("ConferenceSeries", uselist=False)
-    _paa = relationship("PaperAuthorAffiliation")
+    _paa = relationship("PaperAuthorAffiliation", backref='paper')
 
     @hybrid_property
     def EF(self):
